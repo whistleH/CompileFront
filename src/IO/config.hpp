@@ -8,15 +8,21 @@
 using namespace std;
 
 namespace Config {
-	const string path_keyword = "./IO/keywords.txt";
-	const string path_operator = "./IO/operator_symbol.txt";
-	const string path_delimiter = "./IO/delimiter.txt";
-	const string path_unstop = "./IO/unstop.txt";
-	const string log_path = "./IO/parser.log";
-	const string grammar_path = "./IO/grammar.txt";
+	const string path_keyword = "./keywords.txt";
+	const string path_operator = "./operator_symbol.txt";
+	const string path_delimiter = "./delimiter.txt";
+	const string path_unstop = "./unstop.txt";
+	const string log_path = "./parser.log";
+	const string grammar_path = "./grammar.txt";
 	const string end = "$";
 	const int end_int = -2;
 };
+
+typedef struct{
+	string regex;
+	int endType = -1;
+	bool raw = false;
+} regex_exp;
 
 class config
 {
@@ -29,7 +35,7 @@ public:
 	const map<string, int>& get_keywords()const;
 	const map<string, int>& get_operators()const;
 	const map<string, int>& get_delimiters()const;
-	vector<pair<int, vector<int>>>& get_grammar(){ return this->grammar; };
+	const vector<pair<int, vector<int>>>& get_grammar()const { return this->grammar; };
 	const map<string, int>& get_symbols() const { return this->dic_symbols.symbols; };
 	map<int, string>& get__symbols(){ return this->dic_symbols._symbols; };
 private:
@@ -41,10 +47,11 @@ private:
 		map<string, int> delimiters;
 		map<string, int> symbols;
 		map<int, string> _symbols;
-		string end = Config::end; //ç”¨ä½œå½’çº¦çš„ç»ˆæ­¢ç¬¦
-	}dic_symbols; //ç¬¦å·å­—å…¸ï¼ŒæŠŠæ¯ä¸€ä¸ªç¬¦å·æ˜ å°„åˆ°ä¸€ä¸ªintå€¼ 
-	vector<pair<int, vector<int>>> grammar;//æ‰€æœ‰æ–‡æ³•è¡¨
+		string end = Config::end; //ÓÃ×÷¹éÔ¼µÄÖÕÖ¹·û
+	}dic_symbols; //·ûºÅ×Öµä£¬°ÑÃ¿Ò»¸ö·ûºÅÓ³Éäµ½Ò»¸öintÖµ 
+	vector<pair<int, vector<int>>> grammar;//ËùÓĞÎÄ·¨±í
 	ofstream logFile;
+	vector<regex_exp> regexList;
 };
 
 static void get_phases_list(vector<int>& res, config& con, string input)
@@ -61,10 +68,10 @@ static void get_phases_list(vector<int>& res, config& con, string input)
 			if (j < i + 2)
 				continue;
 			else {
-				string temp = input.substr(i + 1, j - i - 1);//å¾—åˆ°çŠ¶æ€å
+				string temp = input.substr(i + 1, j - i - 1);//µÃµ½×´Ì¬Ãû
 				temp.erase(0, temp.find_first_not_of(" "));
 				temp.erase(temp.find_last_not_of(" ") + 1);
-				//ä»¥ä¸Šè¿™äº›æ“ä½œæ˜¯é¿å…å»é™¤ç©ºæ ¼
+				//ÒÔÉÏÕâĞ©²Ù×÷ÊÇ±ÜÃâÈ¥³ı¿Õ¸ñ
 				auto iter_stop = con.get_stop_symbols().find(temp);
 				if (iter_stop != con.get_stop_symbols().end())
 					res.push_back(iter_stop->second);
@@ -73,7 +80,7 @@ static void get_phases_list(vector<int>& res, config& con, string input)
 					if (iter_unstop != con.get_unstop_symbols().end())
 						res.push_back(iter_unstop->second);
 					else {
-						con.log(string("[ERROR] æ²¡æœ‰è¿™ä¸ªçŠ¶æ€ ") + temp);
+						con.log(string("[ERROR] Ã»ÓĞÕâ¸ö×´Ì¬ ") + temp);
 					}
 				}
 			}
@@ -88,6 +95,8 @@ inline config::config()
 	stringstream ssm;
 	string temp;
 	string content;
+	int raw;
+	string regex;
 	int id;
 
 	fin.open(Config::path_keyword, ios::in);
@@ -95,14 +104,20 @@ inline config::config()
 	assert(fin.is_open());
 	while (fin.peek() != EOF) {
 		getline(fin, temp);
-		ssm << temp;//å…¨éƒ¨æ”¾ä¸‹å»
+		ssm << temp;//È«²¿·ÅÏÂÈ¥
 		ssm >> content;
 		ssm >> id;
+		ssm >> raw;
+		if (raw == 0)
+			ssm >> regex;
+		else
+			regex = content;
 		ssm.clear();
 		this->dic_symbols.stop_symbols[content] = id;
 		this->dic_symbols.keywords[content] = id;
 		this->dic_symbols.symbols[content] = id;
 		this->dic_symbols._symbols[id] = content;
+		this->regexList.push_back(regex_exp{ regex,id,raw == 1 });
 	}
 	fin.close();
 
@@ -110,14 +125,17 @@ inline config::config()
 	assert(fin.is_open());
 	while (fin.peek() != EOF) {
 		getline(fin, temp);
-		ssm << temp;//å…¨éƒ¨æ”¾ä¸‹å»
+		ssm << temp;//È«²¿·ÅÏÂÈ¥
 		ssm >> content;
 		ssm >> id;
+		ssm >> raw;
+		ssm >> regex;
 		ssm.clear();
 		this->dic_symbols.stop_symbols[content] = id;
 		this->dic_symbols.delimiters[content] = id;
 		this->dic_symbols.symbols[content] = id;
 		this->dic_symbols._symbols[id] = content;
+		this->regexList.push_back(regex_exp{ regex,id,raw == 1 });
 	}
 	fin.close();
 
@@ -125,14 +143,17 @@ inline config::config()
 	assert(fin.is_open());
 	while (fin.peek() != EOF) {
 		getline(fin, temp);
-		ssm << temp;//å…¨éƒ¨æ”¾ä¸‹å»
+		ssm << temp;//È«²¿·ÅÏÂÈ¥
 		ssm >> content;
 		ssm >> id;
+		ssm >> raw;
+		ssm >> regex;
 		ssm.clear();
 		this->dic_symbols.stop_symbols[content] = id;
 		this->dic_symbols.operators[content] = id;
 		this->dic_symbols.symbols[content] = id;
 		this->dic_symbols._symbols[id] = content;
+		this->regexList.push_back(regex_exp{ regex,id,raw == 1 });
 	}
 	fin.close();
 
@@ -140,7 +161,7 @@ inline config::config()
 	assert(fin.is_open());
 	while (fin.peek() != EOF) {
 		getline(fin, temp);
-		ssm << temp;//å…¨éƒ¨æ”¾ä¸‹å»
+		ssm << temp;//È«²¿·ÅÏÂÈ¥
 		ssm >> content;
 		ssm >> id;
 		ssm.clear();
@@ -149,7 +170,7 @@ inline config::config()
 		this->dic_symbols._symbols[id] = content;
 	}
 	fin.close();
-	this->dic_symbols.symbols[this->dic_symbols.end] = Config::end_int; //åŠ ä¸Šæ ˆåº•ç¬¦å·
+	this->dic_symbols.symbols[this->dic_symbols.end] = Config::end_int; //¼ÓÉÏÕ»µ×·ûºÅ
 	this->dic_symbols._symbols[Config::end_int] = this->dic_symbols.end;
 
 	logFile.open(Config::log_path, ios::out);
@@ -159,21 +180,21 @@ inline config::config()
 	assert(fin.is_open());
 	while (fin.peek()!= EOF){
 		getline(fin, temp);
-		auto pos = temp.find("â†’");
+		auto pos = temp.find("¡ú");
 		if (pos == string::npos) {
-			log("[ERROR] è¯­æ³•è¡¨è¾¾å¼é”™è¯¯ï¼Œç¼ºå°‘â†’");
+			log("[ERROR] Óï·¨±í´ïÊ½´íÎó£¬È±ÉÙ¡ú");
 			return;
 		}
-		//åˆ‡åˆ†å­—ç¬¦ä¸²
-		string src = temp.substr(0, pos); //èµ·å§‹çŠ¶æ€
-		string des = temp.substr(pos + 2); //åˆ°è¾¾çŠ¶æ€
+		//ÇĞ·Ö×Ö·û´®
+		string src = temp.substr(0, pos); //ÆğÊ¼×´Ì¬
+		string des = temp.substr(pos + 2); //µ½´ï×´Ì¬
 		vector<int> src_list, des_list;
 		get_phases_list(src_list, *this, src);
 		get_phases_list(des_list, *this, des);
 		if (src_list.size() != 1) 
-			log("[ERROR] èµ·å§‹çŠ¶æ€é›†åˆåº”è¯¥æœ‰ä¸”åªèƒ½æœ‰1ä¸ª");
+			log("[ERROR] ÆğÊ¼×´Ì¬¼¯ºÏÓ¦¸ÃÓĞÇÒÖ»ÄÜÓĞ1¸ö");
 		this->grammar.push_back(make_pair(src_list[0], des_list));
-		log(string("[INFO] æˆåŠŸå¯¼å…¥è¯­æ³•è¡¨è¾¾å¼" + temp));
+		log(string("[INFO] ³É¹¦µ¼ÈëÓï·¨±í´ïÊ½" + temp));
 	}
 	fin.close();
 	
@@ -200,24 +221,24 @@ const map<string, int>& config::get_stop_symbols()const
 const map<string, int>& config::get_unstop_symbols()const
 {
 	return this->dic_symbols.unstop_symbols;
-	// TODO: åœ¨æ­¤å¤„æ’å…¥ return è¯­å¥
+	// TODO: ÔÚ´Ë´¦²åÈë return Óï¾ä
 }
 
 const map<string, int>& config::get_keywords()const
 {
 	return this->dic_symbols.keywords;
-	// TODO: åœ¨æ­¤å¤„æ’å…¥ return è¯­å¥
+	// TODO: ÔÚ´Ë´¦²åÈë return Óï¾ä
 }
 
 const map<string, int>& config::get_operators()const
 {
 	return this->dic_symbols.operators;
-	// TODO: åœ¨æ­¤å¤„æ’å…¥ return è¯­å¥
+	// TODO: ÔÚ´Ë´¦²åÈë return Óï¾ä
 }
 
 const map<string, int>& config::get_delimiters()const
 {
 	return this->dic_symbols.delimiters;
-	// TODO: åœ¨æ­¤å¤„æ’å…¥ return è¯­å¥
+	// TODO: ÔÚ´Ë´¦²åÈë return Óï¾ä
 }
 

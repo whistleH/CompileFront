@@ -3,11 +3,12 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe 生成活动文件",
-            "command": "C:\\Environment\\mingw64\\mingw64\\bin\\g++.exe",
+            "command": "D:\\MySoftware\\MinGW\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                "${fileDirname}\\test_for_FA.cpp",
+                //"${file}",
                 "${fileDirname}\\FA\\FA.cpp",
                 "${fileDirname}\\IO\\inputBuffer.cpp", 
                 "${fileDirname}\\jsoncpp.cpp",
