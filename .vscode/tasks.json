@@ -11,6 +11,7 @@
                 //"${file}",
                 "${fileDirname}\\FA\\FA.cpp",
                 "${fileDirname}\\IO\\inputBuffer.cpp", 
+                "${fileDirname}\\IO\\config.cpp",
                 "${fileDirname}\\jsoncpp.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",

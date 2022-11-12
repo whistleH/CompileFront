@@ -4,9 +4,11 @@
 #include "FA.h"
 #include <stdlib.h>
 #include <string.h>
+#include "../IO/config.h"
 
 using namespace std;
 
+extern config con;
 
 // 打印集合
 void printSet(set<int> s){
@@ -382,6 +384,42 @@ void FA::readStr(string& s, int endType)
     this->symbolTable.insert(fa.symbolTable.begin(), fa.symbolTable.end());
 }
 
+
+/*******************************
+ function: get the tree
+ delta   :   
+ *****************************/
+void FA::readSymolTable()
+{
+	int sym_idx = 0;
+	bool first = false;
+	vector<regex_exp> regexList = con.get_regex();
+	for(auto& iter : regexList)
+	{
+		if(!first)
+		{
+			int flag = iter.raw ? READ_STRING :READ_REGNEX; 
+			FA fa(iter.regex,flag, iter.endType);
+			this->begNode = fa.begNode;
+			this->endNode = fa.endNode;
+			this->mgraph = fa.mgraph;
+			this->mgraph[this->endNode].isEnd = true;
+			this->mgraph[this->endNode].endState.insert(iter.endType);
+			this->symbolTable.insert(fa.symbolTable.begin(), fa.symbolTable.end());
+			
+			first = true;
+		}
+		// 正规表达式
+		if(iter.raw == 0)
+		{
+			
+		}else{
+			FA tmp = FA(iter.regex,READ_REGNEX,iter.endType);
+			this->mergeFAbyOr(tmp,KEEP_END);
+		}
+	}
+}
+
 FA::FA(char ch)
 {
 	mgraph.push_back(VNode(0));
@@ -412,6 +450,8 @@ FA::FA(string& s, int type, int endType){
 	}
 	else if (type == READ_FILE_BY_LINE) {
 		this->readFile(s);
+	}else if(type == READ_SYMBOLTABLE) {
+		this->readSymolTable();
 	}
 }
 
