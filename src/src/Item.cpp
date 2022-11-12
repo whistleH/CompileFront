@@ -1,5 +1,5 @@
 #include "Item.h"
-
+#include "IO/config.hpp"
 extern config con;
 
 Gram::Gram(const Gram& tmp)
@@ -117,25 +117,9 @@ bool Item::operator<(const Item& other) const{
         return this->id < other.id;
 }
 
-CFG::CFG(){
+CFG::CFG()
+{
     vector<std::pair<int, std::vector<int>>> gramVec = con.get_grammar();
-    this->terSysboms = con.get_stop_symbols();
-    this->nonTerSysboms = con.get_unstop_symbols();
-    
-    // 初始状态
-    this->begState = gramVec[0].first;
-    // 构建语法表
-    int _ = 0;
-    for(auto grammar : gramVec){
-        if(grammar.second.size()>0){
-            this->initGram.push_back(Gram(grammar.first, grammar.second));
-            leftToGramIndex[grammar.first].insert(_++);
-        }
-        else{
-            // cout << "[WARN]不存在的生成式"+to_string(grammar.first) << endl;
-            con.log("[WARN]不存在的生成式"+to_string(grammar.first));
-        }
-    }
 	// 使用课本上的测试语法
 	/*
 		终结符： a = 1,b = 2;
@@ -154,36 +138,35 @@ CFG::CFG(){
 		拓广文法：
 			S`->S
 	*/
-    // this->begState = 
 
 	// 文法定义
-	// int left = 1000;
-	// vector<int> right3 = { 1001 };
-	// this->initGram.push_back(Gram(left, right3));
-	// leftToGramIndex[1000].insert(0);
+	int left = 1000;
+	vector<int> right3 = { 1001 };
+	this->initGram.push_back(Gram(left, right3));
+	leftToGramIndex[1000].insert(0);
 
-	// left = 1001;
-	// vector<int> right = { 1002, 1002 };
-	// Gram tmp(left, right);
-	// this->initGram.push_back(tmp);
-	// leftToGramIndex[1001].insert(1);
+	left = 1001;
+	vector<int> right = { 1002, 1002 };
+	Gram tmp(left, right);
+	this->initGram.push_back(tmp);
+	leftToGramIndex[1001].insert(1);
 
-	// left = 1002;
-	// vector<int> right1 = { 1, 1002 };
-	// this->initGram.push_back(Gram(left, right1));
-	// leftToGramIndex[1002].insert(2);
+	left = 1002;
+	vector<int> right1 = { 1, 1002 };
+	this->initGram.push_back(Gram(left, right1));
+	leftToGramIndex[1002].insert(2);
 
-	// left = 1002;
-	// vector<int> right2 = { 2 };
-	// this->initGram.push_back(Gram(left, right2));
-	// leftToGramIndex[1002].insert(3);
+	left = 1002;
+	vector<int> right2 = { 2 };
+	this->initGram.push_back(Gram(left, right2));
+	leftToGramIndex[1002].insert(3);
 
-	// this->begState = 1000;//最终归约停止的符号
+	this->begState = 1000;//最终归约停止的符号
 
-    // // 非终结符:
-    // this->nonTerSysboms = {1000, 1001, 1002};
-    // // 终结符
-    // this->terSysboms = {Config::end_int, 1, 2};
+    // 非终结符:
+    this->nonTerSysboms = {1000, 1001, 1002};
+    // 终结符
+    this->terSysboms = {Config::end_int, 1, 2};
 }
 
 CFG::CFG(const string& grammerFile)
@@ -232,32 +215,30 @@ void CFG::buildClosures(){
         Closure builtClosure(*this, waitExtendedClosure.getFamily());
 
         // debug
-        int source = this->closures.size();
-        if(this->debug){
-            cout << "ClosureID: " << source << endl;
-            builtClosure.printClosure();
-        }
+        builtClosure.printClosure();
 
         // 保存转移结果
         this->closures.push_back(builtClosure);
         transRes.push_back(set<pair<int, int>>{closureFrom});
         this->closuresRelation.push_back(set< pair<int, int> >{});
 
+        /* GO */
+        int source = this->closures.size()-1;
         // 非终结符
         for(auto nonTerSys: nonTerSysboms){
-            set<Item> gotoRes = builtClosure.GO(nonTerSys.second);
+            set<Item> gotoRes = builtClosure.GO(nonTerSys);
             if(!gotoRes.empty()) {
                 buildQueue.push(gotoRes);
-                transQ.push({source, nonTerSys.second});
+                transQ.push({source, nonTerSys});
             }
         }
 
         // 终结符
         for(auto terSys: terSysboms){
-            set<Item> actionRes = builtClosure.GO(terSys.second);
+            set<Item> actionRes = builtClosure.GO(terSys);
             if(!actionRes.empty()) {
                 buildQueue.push(actionRes);
-                transQ.push({source, terSys.second});
+                transQ.push({source, terSys});
             }
         }
 
@@ -267,26 +248,11 @@ void CFG::buildClosures(){
     int i=0;
     for(auto trans : transRes){
         for(auto tranPair : trans){
-            if(tranPair.first!=0 || tranPair.second!=0)
-                this->closuresRelation[tranPair.first].insert({tranPair.second, i});
+            this->closuresRelation[tranPair.first].insert({tranPair.second, i});
         }
         i++;
     }
-
-    // 输出闭包之间关系
-    if(this->debug){
-        cout << "闭包关系: " << endl;
-        for(uint32_t i = 0; i<this->closuresRelation.size(); i++){
-            cout << i << ": ";
-            for(auto tran : this->closuresRelation[i]){
-                cout << "<" << tran.first << ", " << tran.second << "> ";
-            }
-            cout << endl;
-        }
-    }
-    // cout << endl;
 }
-
 
 void CFG::buildAnalysisTable(){
     // 根据闭包关系构建action / goto表
@@ -310,31 +276,6 @@ void CFG::buildAnalysisTable(){
             }
         }
     }
-
-    // debug
-
-    if(this->debug){
-        cout << endl;
-        for(auto analysisItem : this->analysisTable){
-            cout << "State: " << analysisItem.first << endl;
-            sort(analysisItem.second.begin(), analysisItem.second.end());
-            cout << "\taction: ";
-            uint32_t i = 0;
-            for(; i<analysisItem.second.size(); i++){
-                if(analysisItem.second[i].first>1000) break;
-                cout << "<" << analysisItem.second[i].first << ", " << analysisItem.second[i].second << "> ";
-            }
-            cout << endl;
-            cout << "\tgoto: ";
-            if(i<analysisItem.second.size()){
-                for(; i<analysisItem.second.size(); i++){
-                    cout << "<" << analysisItem.second[i].first << ", " << analysisItem.second[i].second << "> ";
-                }
-            }
-            cout<<"\n"<<endl;
-        }
-    }
-
 }
 
 void CFG::showCFG()
@@ -349,12 +290,12 @@ void CFG::showCFG()
 		cout << "输出所有项目:" << endl;
 		s.showItem();
 	}
-    // cout << "\n" << "所有LR(0)项目为" << endl;
+    cout << "\n" << "所有LR(0)项目为" << endl;
 
-    // for (auto& s : LRItem){
-	// 	cout << "输出所有项目:" << endl;
-	// 	s.showItem();
-	// }
+    for (auto& s : LRItem){
+		cout << "输出所有项目:" << endl;
+		s.showItem();
+	}
 	/*for (auto& iter: leftToGramIndex)
 	{
 		cout << iter.first<<"\t:\t";
@@ -386,42 +327,25 @@ void CFG::formFirstSet()
 	// 因为生成FIRST集的过程是个不断重复的过程，因此需要用FIRST类的bool变量标记该集合是否已经被确定
 	// 不确定性具备可传递性，A<-B<-C，C不确定，则AB不确定
 	// 下面的方法需要initGram 中需要非终结符按照顺序排列。
-	map<std::string, int> symbols = con.get_symbols();
-    
+	vector<int> symbols = { 1,2,1000,1001,1002 };
 	bool flag = true;
-	// int times = 0;
 	while (flag) {
 		flag = false;
-        for(auto symbol : symbols){
-			if(leftToGramIndex[symbol.second].size()!=0)
+		for (int i = 0; i < symbols.size(); i++)
+		{
+			if (!firstSet[symbols[i]].isSure())
 			{
-				if (!firstSet[symbol.second].isSure()){
-				formFirstSet(symbol.second);
-					if (!firstSet[symbol.second].isSure()){
-						flag = true;
-					}
-				} 
-			}           
-        }
-		// cout<<times<<"轮"<<endl;
-		// for(auto symbol : symbols)
-		// {
-		// 	if(!firstSet[symbol.second].isSure() && leftToGramIndex[symbol.second].size()!=0)
-		// 	{
-		// 		cout<<symbol.second<<"\t: \t"<<endl;
-		// 		for (auto iter: leftToGramIndex[symbol.second])
-		// 		{
-		// 			cout<<"\t\t";
-		// 			initGram[iter].showGram();
-		// 		}
-		// 		cout<<endl;
-		// 	}
-		// 	cout<<endl;
-		// }
-		// times++;
+				formFirstSet(symbols[i]);
+				if (!firstSet[symbols[i]].isSure())
+				{
+					flag = true;
+				}
+			}
+		}
 	}
 
 }
+
 void CFG::formFirstSet(int symbol)
 {	
 	// 算法 第4章PPT第31页

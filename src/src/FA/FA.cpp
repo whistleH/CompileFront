@@ -4,7 +4,7 @@
 #include "FA.h"
 #include <stdlib.h>
 #include <string.h>
-#include "config.h"
+#include "../IO/config.h"
 
 using namespace std;
 
@@ -399,7 +399,7 @@ void FA::readSymolTable()
 		if(!first)
 		{
 			int flag = iter.raw ? READ_STRING :READ_REGNEX; 
-			FA fa(iter.regex, flag, iter.endType);
+			FA fa(iter.regex,flag, iter.endType);
 			this->begNode = fa.begNode;
 			this->endNode = fa.endNode;
 			this->mgraph = fa.mgraph;
@@ -410,10 +410,9 @@ void FA::readSymolTable()
 			first = true;
 		}
 		// 正规表达式
-		if(iter.raw == 1)
+		if(iter.raw == 0)
 		{
-			FA tmp = FA(iter.regex,READ_STRING,iter.endType);
-			this->mergeFAbyOr(tmp,KEEP_END);
+			
 		}else{
 			FA tmp = FA(iter.regex,READ_REGNEX,iter.endType);
 			this->mergeFAbyOr(tmp,KEEP_END);

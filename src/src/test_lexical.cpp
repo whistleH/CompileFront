@@ -1,15 +1,14 @@
-#include "FA.h"
-#include "inputBuffer.h"
-#include "config.h"
+#include "FA/FA.h"
+#include "IO/inputBuffer.h"
+#include "IO/config.hpp"
 #include "Parser.hpp"
 #include "parserTree.hpp"
-#include "Item.h"
 
 config con;
 
 int main(){
-    // string path = "dfghjk";
-	// FA fa(path, READ_SYMBOLTABLE);
+    // string filename = "./FA/regex.txt";
+	// FA fa(filename, READ_FILE_BY_LINE);
     // FA dfa = fa.toDFA();
     // dfa.saveDFA("dfamodel");
     int sys_idx, err_idx;
@@ -35,18 +34,8 @@ int main(){
         cout << token << " " ;
     }
 
-    CFG cfg;
-        // 初始化项目
-    cfg.setDebug();
-    cfg.initItems();
-    cfg.initLRItems();
-	cfg.formFirstSet();
-    cfg.buildClosures();
-    cfg.buildAnalysisTable();
-    map<int, std::vector<std::pair<int, int>>> analysisTable = cfg.getAnalysisTable();
     
     parser Pa;
-    Pa.analysis(tokens, analysisTable);
-    
+    // Pa.analysis(tokens, )
 
 }
