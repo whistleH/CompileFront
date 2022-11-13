@@ -111,6 +111,15 @@ config::config()
 	
 }
 
+string config::get_name(int value)
+{
+	// for(auto& i: dic_symbols._symbols)
+	// {
+	// 	if()
+	// }
+	return dic_symbols._symbols[value];
+}
+
 
 config::~config()
 {

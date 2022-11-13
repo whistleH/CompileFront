@@ -21,6 +21,13 @@ void Gram::showGram()
 	{
 		cout << iter << ",";
 	}
+	
+	cout << "\t\t";
+	cout << con.get_name(this->left) << "\t->\t";
+	for (auto iter : right)
+	{
+		cout << con.get_name(iter) << ",";
+	}
 	cout << endl;
 }
 
@@ -393,10 +400,11 @@ void CFG::formFirstSet()
 	while (flag) {
 		flag = false;
         for(auto symbol : symbols){
+			//firstSet[symbol.second].makeSure();
 			if(leftToGramIndex[symbol.second].size()!=0)
 			{
 				if (!firstSet[symbol.second].isSure()){
-				formFirstSet(symbol.second);
+					formFirstSet(symbol.second);
 					if (!firstSet[symbol.second].isSure()){
 						flag = true;
 					}
@@ -419,6 +427,19 @@ void CFG::formFirstSet()
 		// 	cout<<endl;
 		// }
 		// times++;
+	}
+
+	if(this->debug)
+	{
+		cout << endl;
+		for(auto &i:initGram)
+		{
+			i.showGram();
+		}
+		
+		cout<<endl;
+
+		this->showFirstSet();
 	}
 
 }
@@ -452,6 +473,7 @@ void CFG::formFirstSet(int symbol)
 			else if (initGram[iter].right[0] > 1000) {
 				bool flag = true;
 				int idx = 0;
+				//firstSet[symbol].makeSure();
 				while (flag)
 				{
 					// FIRST[x] = FIRST[Y] - epsilon 
@@ -460,6 +482,9 @@ void CFG::formFirstSet(int symbol)
 					tmp.divEpsilon();
 					// 此处仍然可以改进，即当Y1确定时，X不需要反复读取
 					firstSet[symbol].insert(tmp);
+					// if(!tmp.isSure()){
+					// 	firstSet[symbol].notSure();
+					// }
 					firstSet[symbol].transSure(tmp);
 
 					if (idx + 1 == initGram[iter].right.size()) {

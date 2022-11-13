@@ -28,6 +28,7 @@ public:
 	const map<string, int>& get_operators()const;
 	const map<string, int>& get_delimiters()const;
 	const vector<regex_exp>& get_regex() const;
+	string get_name(int value);
 	const vector<pair<int, vector<int>>>& get_grammar()const { return this->grammar; };
 	const map<string, int>& get_symbols() const { return this->dic_symbols.symbols; };
 	map<int, string>& get__symbols(){ return this->dic_symbols._symbols; };
@@ -46,6 +47,7 @@ private:
 	ofstream logFile;
 	vector<regex_exp> regexList;
 };
+
 
 static void get_phases_list(vector<int>& res, config& con, string input)
 {
