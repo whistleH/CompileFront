@@ -456,7 +456,7 @@ void CFG::formFirstSet(int symbol)
 	}
 	// 此时的情况为S`
 	else if(symbol == this->begState){
-		this->firstSet[symbol].insert(0);
+		this->firstSet[symbol].insert(Config::end_int);
 		this->firstSet[symbol].makeSure();
 	}
 	else
@@ -646,7 +646,14 @@ Closure::Closure(CFG& cfg,const set<Item>& items){
         // 取队首元素
         Item now_item = item_res.front();
         item_res.pop();
+        // 防止重复
+        uint32_t old_size = this->family.size();
         this->family.insert(now_item);
+        if(old_size == this->family.size()){
+            // cout << "重复的Item" << endl;
+            // now_item.showItem();
+            continue;
+        }
         // showItem(now_item);
         // 点后面是非终结符, 进行拓展, 即S->α.Bβ形式
         if(now_item.getType() != ACTION_REDUCE && now_item.getDotNext()>1000){
@@ -667,8 +674,11 @@ Closure::Closure(CFG& cfg,const set<Item>& items){
             // 移进模式, β不为空, forward=first(β)
             else{
                 vector<int> beta = now_item.getDotNextAll();    // 获取β
-                forward_tmp = cfg.getFirstSet(beta);
-                // forward_tmp = cfg.getFirstSet(beta[0]);
+                if(beta[0] < 1000){
+                    forward_tmp.insert(beta[0]);
+                }
+                else
+                    forward_tmp = cfg.getFirstSet(beta);
             }
 
             // 该闭包构造其他项目

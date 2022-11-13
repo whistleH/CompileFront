@@ -67,6 +67,15 @@ static void get_phases_list(vector<int>& res, config& con, string input)
 				temp.erase(0, temp.find_first_not_of(" "));
 				temp.erase(temp.find_last_not_of(" ") + 1);
 				//以上这些操作是避免去除空格
+				while(true){
+					int t = temp.find("large");
+					if(t != string::npos){
+						temp = temp.substr(t + 5);
+						temp = ">" + temp;	
+					}
+					else
+						break;
+				}
 				auto iter_stop = con.get_stop_symbols().find(temp);
 				if (iter_stop != con.get_stop_symbols().end())
 					res.push_back(iter_stop->second);
