@@ -1,12 +1,14 @@
 # Lexical_analyzer
 编译原理 词法分析器
 
-### 咕咕咕
+参数说明
 
+```
+-s/--save dfapath 将dfa固化至dfapath
+-l/--load dfapath 将dfa模型从dfapath中加载
 
-### 待优化
-源文件存在多行续行符, 将源代码拼成一句
+demo
+	main.exe -s dfamodel test_in.txt
+```
 
-###
-删除了解引用
-增加浮点数, 字符串常量
+根目录下配置了`save_for_run.bat`,`load_for_run.bat`
