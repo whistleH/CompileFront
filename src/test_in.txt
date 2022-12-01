@@ -1,15 +1,19 @@
-#include <stdio.h>
+#include<stdio.h>
 #include "FA.h"
-void func(int a)
+double a = -1.23;
+void func()
 {
-    double f;
-    f++;
-    f--;
-    ++f;
-    printf("%d",a);
+   float b;
+   ++b;
+   --b;
+   for(int a=0;a<10;a++)
+   {
+       func(a);
+   }
 }
 int main()
 {
-    int a = 1;
-    return 1;
-} 
+    int a; 
+    printf();
+    return 0;
+}

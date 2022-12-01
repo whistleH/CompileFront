@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
+#include "Exception.h"
 
 using namespace std;
 
@@ -505,11 +506,12 @@ set<int> FA::findNextNode(int src_index, char trans_ch){
  * @return int 
  */
 int getFirstPriState(set<int> end_set){
-    return *(end_set.begin());
+    if(end_set.empty()) return -1;
+    else return *(end_set.begin());
 }
 
 
-vector<int> FA::checkStr(const string& in,int& sym_idx,int& err_t){
+vector<token> FA::checkStr(const string& in,int& sym_idx,int& err_t,int line){
 	int cur = this->begNode;
     vector<pair<string, int>> res;
     string nowBuffer;
@@ -519,12 +521,43 @@ vector<int> FA::checkStr(const string& in,int& sym_idx,int& err_t){
     while(index <= in.length()){
         // 判断是否存在转移函数
         if(index < in.length() &&this->mgraph[cur].arcs.count(in[index])){
+            vector<int> vist_end;
             while(this->mgraph[cur].arcs.count(in[index])){
                 cur = *(this->mgraph[cur].arcs[in[index]].begin()); // 转移到下一个节点
                 nowBuffer += in[index];                             // 读取当前串    
+                vist_end.push_back(getFirstPriState(this->mgraph[cur].endState));
                 index++;                         
             }
-			end_state = getFirstPriState(this->mgraph[cur].endState);
+			end_state = vist_end.back();
+            // 回滚, 找到第一个不为-1的字串
+            if(end_state < 0){
+                int find_first_true = vist_end.size()-1;
+                // 查询visit数组
+                while(find_first_true>=0){
+                    if(vist_end[find_first_true]>=0){
+                        break;
+                    }
+                    find_first_true--;
+                }
+                // 回滚index
+                if(find_first_true>=0){
+                    // 修改字符串索引
+                    index -= (vist_end.size()-find_first_true-1);    
+                    // 修改end_state
+                    end_state = vist_end[find_first_true];  
+                    // 修改  nowBuffer
+                    string tmp;
+                    for(int i=0; i<=find_first_true; i++){
+                        tmp += nowBuffer[i];
+                    }
+                    nowBuffer = tmp;
+                }
+                else{
+                    con.log("[ERROR] 词法分析出现错误, 分析到的出错串为: " + nowBuffer);
+					throw lexException(string("token ") + nowBuffer + string(" is not allowed here!"), line);
+                    return vector<token>{token{line,"wrong",-1}};
+                }
+            }
             res.push_back(pair<string, int>{nowBuffer, end_state});
             cur = this->begNode;
             nowBuffer = "";
@@ -534,10 +567,10 @@ vector<int> FA::checkStr(const string& in,int& sym_idx,int& err_t){
         }
     }
 
-    vector<int> rres;
+    vector<token> rres;
     for(auto ss:res){
-        cout << ss.first << " " << ss.second << endl;
-        rres.push_back(ss.second);
+        //cout << ss.first << " " << ss.second << endl;
+        rres.push_back({line, ss.first, ss.second});
     }
 	return rres;
 }

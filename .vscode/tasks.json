@@ -13,7 +13,8 @@
                 "${fileDirname}\\IO\\inputBuffer.cpp", 
                 "${fileDirname}\\config\\config.cpp", 
                 "${fileDirname}\\dependency\\jsoncpp.cpp",
-                "${fileDirname}\\GRAM\\Item.cpp",
+                "${fileDirname}\\Gram\\Gram.cpp",
+                "${fileDirname}\\exception\\Exception.cpp",
 
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
@@ -48,7 +49,8 @@
                 "${cwd}\\src\\IO\\inputBuffer.cpp", 
                 "${cwd}\\src\\config\\config.cpp", 
                 "${cwd}\\src\\dependency\\jsoncpp.cpp",
-                "${cwd}\\src\\GRAM\\Item.cpp",
+                "${cwd}\\src\\GRAM\\Gram.cpp",
+                "${cwd}\\src\\exception\\Exception.cpp",
 
                 "-o",
                 "${cwd}\\src\\main.exe",
@@ -77,7 +79,7 @@
                 "${fileDirname}\\IO\\inputBuffer.cpp", 
                 "${fileDirname}\\config\\config.cpp", 
                 "${fileDirname}\\dependency\\jsoncpp.cpp",
-                "${fileDirname}\\GRAM\\Item.cpp",
+                "${fileDirname}\\GRAM\\Gram.cpp",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
 

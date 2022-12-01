@@ -1,4 +1,6 @@
 #pragma once
+#ifndef CONST_H
+#define CONST_H
 #include <string>
 
 
@@ -8,12 +10,8 @@ namespace parser_config {
 };
 
 namespace Config {
-	const std::string path_keyword = "./config/keywords.txt";
-	const std::string path_operator = "./config/operator_symbol.txt";
-	const std::string path_delimiter = "./config/delimiter.txt";
-	const std::string path_unstop = "./config/unstop.txt";
-	const std::string log_path = "./config/parser.log";
-	const std::string grammar_path = "./config/grammar.txt";
 	const std::string end = "$";
 	const int end_int = -2;
 };
+
+#endif // CONST_H

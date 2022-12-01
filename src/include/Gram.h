@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include "const.h"
 #include "config.h"
 
 #define ACTION_REDUCE	0
@@ -89,6 +88,7 @@ public:
 	void divEpsilon();
 	int count(int);
 	void showFIRST();
+    void transSure(bool subSure);
 	void transSure(const FIRST&);
 	void makeSure();	
 	void notSure();
