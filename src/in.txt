@@ -1,1 +1,11 @@
-double flag = -1.23;
+int main()
+{
+  	int a = 1;
+  	int b = 1;
+  	int c = 1;
+  	int d = 1;
+	while(a < b && c < d || b >c)
+	{
+		a = a * b + c;
+	}
+}

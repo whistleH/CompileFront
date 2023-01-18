@@ -3,6 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+VS/.vs
+VS/Debug
+VS/ez_compiler/x64
+VS/ez_compiler/Debug
+VS/ez_compiler/Release
+VS/x64
+VS/Release
+
+
 # C extensions
 *.so
 
